@@ -1,15 +1,19 @@
-import { 
-  users, type User, type InsertUser,
-  groups, type Group, type InsertGroup,
-  groupMembers, type GroupMember, type InsertGroupMember,
-  forums, type Forum, type InsertForum,
-  forumPosts, type ForumPost, type InsertForumPost,
-  forumReplies, type ForumReply, type InsertForumReply,
-  zoomCalls, type ZoomCall, type InsertZoomCall,
-  zoomCallParticipants, type ZoomCallParticipant, type InsertZoomCallParticipant
+import * as schema from "@shared/schema";
+import type { 
+  User, InsertUser,
+  Group, InsertGroup,
+  GroupMember, InsertGroupMember,
+  Forum, InsertForum,
+  ForumPost, InsertForumPost,
+  ForumReply, InsertForumReply,
+  ZoomCall, InsertZoomCall,
+  ZoomCallParticipant, InsertZoomCallParticipant
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { pool, db } from './db';
+import { eq, and, or, not, SQL, gt, desc, asc } from 'drizzle-orm';
+import connectPg from 'connect-pg-simple';
 
 const MemoryStore = createMemoryStore(session);
 
@@ -73,7 +77,7 @@ export interface IStorage {
   getCallParticipants(callId: number): Promise<User[]>;
   
   // Session store for authentication
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 export class MemStorage implements IStorage {
@@ -96,7 +100,7 @@ export class MemStorage implements IStorage {
   private zoomCallCurrentId: number;
   private zoomCallParticipantCurrentId: number;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 
   constructor() {
     this.users = new Map();
@@ -527,4 +531,626 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// PostgreSQL implementation
+export class PostgresStorage implements IStorage {
+  sessionStore: any;
+
+  constructor() {
+    // Set up session store using the imported pool
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({
+      pool,
+      createTableIfMissing: true
+    });
+  }
+
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const users = await db.select().from(schema.users).where(eq(schema.users.id, id)).limit(1);
+      return users[0];
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const users = await db.select().from(schema.users).where(eq(schema.users.username, username)).limit(1);
+      return users[0];
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const users = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
+      return users[0];
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return undefined;
+    }
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    try {
+      const result = await db.insert(schema.users).values(user).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, data: Partial<User>): Promise<User> {
+    try {
+      const result = await db.update(schema.users)
+        .set(data)
+        .where(eq(schema.users.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  }
+
+  async updateUserPremiumStatus(id: number, isPremium: boolean, premiumUntil?: Date | null): Promise<User> {
+    try {
+      const result = await db.update(schema.users)
+        .set({ isPremium, premiumUntil: premiumUntil || null })
+        .where(eq(schema.users.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating user premium status:', error);
+      throw error;
+    }
+  }
+
+  async updateUserStripeInfo(id: number, data: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User> {
+    try {
+      const result = await db.update(schema.users)
+        .set(data)
+        .where(eq(schema.users.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating user stripe info:', error);
+      throw error;
+    }
+  }
+
+  // Group operations
+  async getGroup(id: number): Promise<Group | undefined> {
+    try {
+      const groups = await db.select().from(schema.groups).where(eq(schema.groups.id, id)).limit(1);
+      return groups[0];
+    } catch (error) {
+      console.error('Error getting group:', error);
+      return undefined;
+    }
+  }
+
+  async getGroups(isPremium?: boolean): Promise<Group[]> {
+    try {
+      if (isPremium !== undefined) {
+        return await db.select().from(schema.groups).where(eq(schema.groups.isPremium, isPremium));
+      }
+      return await db.select().from(schema.groups);
+    } catch (error) {
+      console.error('Error getting groups:', error);
+      return [];
+    }
+  }
+
+  async createGroup(group: InsertGroup): Promise<Group> {
+    try {
+      const result = await db.insert(schema.groups).values(group).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating group:', error);
+      throw error;
+    }
+  }
+
+  async updateGroup(id: number, data: Partial<Group>): Promise<Group> {
+    try {
+      const result = await db.update(schema.groups)
+        .set(data)
+        .where(eq(schema.groups.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating group:', error);
+      throw error;
+    }
+  }
+
+  async deleteGroup(id: number): Promise<boolean> {
+    try {
+      await db.delete(schema.groups).where(eq(schema.groups.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      return false;
+    }
+  }
+
+  async getUserGroups(userId: number): Promise<Group[]> {
+    try {
+      // Join groups with group_members to get groups for a specific user
+      const result = await db
+        .select({
+          id: schema.groups.id,
+          name: schema.groups.name,
+          description: schema.groups.description,
+          isPremium: schema.groups.isPremium,
+          createdAt: schema.groups.createdAt
+        })
+        .from(schema.groups)
+        .innerJoin(
+          schema.groupMembers,
+          eq(schema.groups.id, schema.groupMembers.groupId)
+        )
+        .where(eq(schema.groupMembers.userId, userId));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting user groups:', error);
+      return [];
+    }
+  }
+
+  async getSuggestedGroups(userId: number, limit: number = 5): Promise<Group[]> {
+    try {
+      // This is a simplified implementation - in a real app, you might want to
+      // implement more sophisticated recommendation logic
+      const userGroups = await this.getUserGroups(userId);
+      const userGroupIds = userGroups.map(group => group.id);
+      
+      // Get groups the user is not a member of
+      let query = db
+        .select()
+        .from(schema.groups);
+      
+      // Add filtering conditions
+      const conditions = [];
+      
+      // Get user premium status first
+      const userResult = await db.select({ isPremium: schema.users.isPremium })
+        .from(schema.users)
+        .where(eq(schema.users.id, userId))
+        .limit(1);
+        
+      const userIsPremium = userResult.length > 0 ? userResult[0].isPremium : false;
+      
+      // User premium status condition - non-premium users can only see free groups
+      if (!userIsPremium) {
+        conditions.push(not(schema.groups.isPremium));
+      }
+      
+      // Not in user's groups condition (only add if user is in some groups)
+      if (userGroupIds.length > 0) {
+        for (const id of userGroupIds) {
+          conditions.push(not(eq(schema.groups.id, id)));
+        }
+      }
+      
+      // Apply all conditions
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+      
+      // Apply limit and execute
+      const groups = await query.limit(limit);
+      
+      return groups;
+    } catch (error) {
+      console.error('Error getting suggested groups:', error);
+      return [];
+    }
+  }
+
+  // Group member operations
+  async addUserToGroup(data: InsertGroupMember): Promise<GroupMember> {
+    try {
+      const result = await db.insert(schema.groupMembers).values(data).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error adding user to group:', error);
+      throw error;
+    }
+  }
+
+  async removeUserFromGroup(userId: number, groupId: number): Promise<boolean> {
+    try {
+      await db.delete(schema.groupMembers)
+        .where(
+          and(
+            eq(schema.groupMembers.userId, userId),
+            eq(schema.groupMembers.groupId, groupId)
+          )
+        );
+      return true;
+    } catch (error) {
+      console.error('Error removing user from group:', error);
+      return false;
+    }
+  }
+
+  async getGroupMembers(groupId: number): Promise<User[]> {
+    try {
+      const result = await db
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          fullName: schema.users.fullName,
+          email: schema.users.email,
+          profileImage: schema.users.profileImage,
+          isPremium: schema.users.isPremium,
+          isAdmin: schema.users.isAdmin
+          // Add other user fields as needed, but exclude sensitive data like password
+        })
+        .from(schema.users)
+        .innerJoin(
+          schema.groupMembers,
+          eq(schema.users.id, schema.groupMembers.userId)
+        )
+        .where(eq(schema.groupMembers.groupId, groupId));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting group members:', error);
+      return [];
+    }
+  }
+
+  async isUserInGroup(userId: number, groupId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .select()
+        .from(schema.groupMembers)
+        .where(
+          and(
+            eq(schema.groupMembers.userId, userId),
+            eq(schema.groupMembers.groupId, groupId)
+          )
+        )
+        .limit(1);
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error checking if user is in group:', error);
+      return false;
+    }
+  }
+
+  // Forum operations
+  async getForum(id: number): Promise<Forum | undefined> {
+    try {
+      const forums = await db.select().from(schema.forums).where(eq(schema.forums.id, id)).limit(1);
+      return forums[0];
+    } catch (error) {
+      console.error('Error getting forum:', error);
+      return undefined;
+    }
+  }
+
+  async getForums(isPremium?: boolean): Promise<Forum[]> {
+    try {
+      if (isPremium !== undefined) {
+        return await db.select().from(schema.forums).where(eq(schema.forums.isPremium, isPremium));
+      }
+      return await db.select().from(schema.forums);
+    } catch (error) {
+      console.error('Error getting forums:', error);
+      return [];
+    }
+  }
+
+  async createForum(forum: InsertForum): Promise<Forum> {
+    try {
+      const result = await db.insert(schema.forums).values(forum).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating forum:', error);
+      throw error;
+    }
+  }
+
+  async updateForum(id: number, data: Partial<Forum>): Promise<Forum> {
+    try {
+      const result = await db.update(schema.forums)
+        .set(data)
+        .where(eq(schema.forums.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating forum:', error);
+      throw error;
+    }
+  }
+
+  async deleteForum(id: number): Promise<boolean> {
+    try {
+      await db.delete(schema.forums).where(eq(schema.forums.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting forum:', error);
+      return false;
+    }
+  }
+
+  // Forum post operations
+  async getForumPost(id: number): Promise<ForumPost | undefined> {
+    try {
+      const posts = await db.select().from(schema.forumPosts).where(eq(schema.forumPosts.id, id)).limit(1);
+      return posts[0];
+    } catch (error) {
+      console.error('Error getting forum post:', error);
+      return undefined;
+    }
+  }
+
+  async getForumPosts(forumId: number): Promise<ForumPost[]> {
+    try {
+      return await db
+        .select()
+        .from(schema.forumPosts)
+        .where(eq(schema.forumPosts.forumId, forumId))
+        .orderBy(desc(schema.forumPosts.createdAt));
+    } catch (error) {
+      console.error('Error getting forum posts:', error);
+      return [];
+    }
+  }
+
+  async createForumPost(post: InsertForumPost): Promise<ForumPost> {
+    try {
+      const result = await db.insert(schema.forumPosts).values(post).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating forum post:', error);
+      throw error;
+    }
+  }
+
+  async updateForumPost(id: number, data: Partial<ForumPost>): Promise<ForumPost> {
+    try {
+      const result = await db.update(schema.forumPosts)
+        .set(data)
+        .where(eq(schema.forumPosts.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating forum post:', error);
+      throw error;
+    }
+  }
+
+  async deleteForumPost(id: number): Promise<boolean> {
+    try {
+      await db.delete(schema.forumPosts).where(eq(schema.forumPosts.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting forum post:', error);
+      return false;
+    }
+  }
+
+  // Forum reply operations
+  async getForumReply(id: number): Promise<ForumReply | undefined> {
+    try {
+      const replies = await db.select().from(schema.forumReplies).where(eq(schema.forumReplies.id, id)).limit(1);
+      return replies[0];
+    } catch (error) {
+      console.error('Error getting forum reply:', error);
+      return undefined;
+    }
+  }
+
+  async getForumReplies(postId: number): Promise<ForumReply[]> {
+    try {
+      return await db
+        .select()
+        .from(schema.forumReplies)
+        .where(eq(schema.forumReplies.postId, postId))
+        .orderBy(schema.forumReplies.createdAt);
+    } catch (error) {
+      console.error('Error getting forum replies:', error);
+      return [];
+    }
+  }
+
+  async createForumReply(reply: InsertForumReply): Promise<ForumReply> {
+    try {
+      const result = await db.insert(schema.forumReplies).values(reply).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating forum reply:', error);
+      throw error;
+    }
+  }
+
+  async updateForumReply(id: number, data: Partial<ForumReply>): Promise<ForumReply> {
+    try {
+      const result = await db.update(schema.forumReplies)
+        .set(data)
+        .where(eq(schema.forumReplies.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating forum reply:', error);
+      throw error;
+    }
+  }
+
+  async deleteForumReply(id: number): Promise<boolean> {
+    try {
+      await db.delete(schema.forumReplies).where(eq(schema.forumReplies.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting forum reply:', error);
+      return false;
+    }
+  }
+
+  // Zoom call operations
+  async getZoomCall(id: number): Promise<ZoomCall | undefined> {
+    try {
+      const calls = await db.select().from(schema.zoomCalls).where(eq(schema.zoomCalls.id, id)).limit(1);
+      return calls[0];
+    } catch (error) {
+      console.error('Error getting zoom call:', error);
+      return undefined;
+    }
+  }
+
+  async getZoomCalls(groupId?: number): Promise<ZoomCall[]> {
+    try {
+      if (groupId) {
+        return await db
+          .select()
+          .from(schema.zoomCalls)
+          .where(eq(schema.zoomCalls.groupId, groupId))
+          .orderBy(schema.zoomCalls.startTime);
+      }
+      return await db
+        .select()
+        .from(schema.zoomCalls)
+        .orderBy(schema.zoomCalls.startTime);
+    } catch (error) {
+      console.error('Error getting zoom calls:', error);
+      return [];
+    }
+  }
+
+  async getUpcomingZoomCalls(userId: number): Promise<ZoomCall[]> {
+    try {
+      const now = new Date();
+      
+      // Get calls from groups the user is a member of
+      return await db
+        .select({
+          id: schema.zoomCalls.id,
+          title: schema.zoomCalls.title,
+          description: schema.zoomCalls.description,
+          startTime: schema.zoomCalls.startTime,
+          endTime: schema.zoomCalls.endTime,
+          zoomLink: schema.zoomCalls.zoomLink,
+          groupId: schema.zoomCalls.groupId,
+          createdAt: schema.zoomCalls.createdAt
+        })
+        .from(schema.zoomCalls)
+        .innerJoin(
+          schema.groupMembers,
+          eq(schema.zoomCalls.groupId, schema.groupMembers.groupId)
+        )
+        .where(
+          and(
+            eq(schema.groupMembers.userId, userId),
+            gt(schema.zoomCalls.endTime, now)
+          )
+        )
+        .orderBy(schema.zoomCalls.startTime);
+    } catch (error) {
+      console.error('Error getting upcoming zoom calls:', error);
+      return [];
+    }
+  }
+
+  async createZoomCall(call: InsertZoomCall): Promise<ZoomCall> {
+    try {
+      const result = await db.insert(schema.zoomCalls).values(call).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating zoom call:', error);
+      throw error;
+    }
+  }
+
+  async updateZoomCall(id: number, data: Partial<ZoomCall>): Promise<ZoomCall> {
+    try {
+      const result = await db.update(schema.zoomCalls)
+        .set(data)
+        .where(eq(schema.zoomCalls.id, id))
+        .returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error updating zoom call:', error);
+      throw error;
+    }
+  }
+
+  async deleteZoomCall(id: number): Promise<boolean> {
+    try {
+      await db.delete(schema.zoomCalls).where(eq(schema.zoomCalls.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting zoom call:', error);
+      return false;
+    }
+  }
+
+  // Zoom call participant operations
+  async addParticipantToCall(data: InsertZoomCallParticipant): Promise<ZoomCallParticipant> {
+    try {
+      const result = await db.insert(schema.zoomCallParticipants).values(data).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error adding participant to call:', error);
+      throw error;
+    }
+  }
+
+  async removeParticipantFromCall(userId: number, callId: number): Promise<boolean> {
+    try {
+      await db.delete(schema.zoomCallParticipants)
+        .where(
+          and(
+            eq(schema.zoomCallParticipants.userId, userId),
+            eq(schema.zoomCallParticipants.callId, callId)
+          )
+        );
+      return true;
+    } catch (error) {
+      console.error('Error removing participant from call:', error);
+      return false;
+    }
+  }
+
+  async getCallParticipants(callId: number): Promise<User[]> {
+    try {
+      const result = await db
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          fullName: schema.users.fullName,
+          email: schema.users.email,
+          profileImage: schema.users.profileImage,
+          isPremium: schema.users.isPremium,
+          isAdmin: schema.users.isAdmin
+        })
+        .from(schema.users)
+        .innerJoin(
+          schema.zoomCallParticipants,
+          eq(schema.users.id, schema.zoomCallParticipants.userId)
+        )
+        .where(eq(schema.zoomCallParticipants.callId, callId));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting call participants:', error);
+      return [];
+    }
+  }
+}
+
+// Use the Drizzle ORM operators imported above
+
+// Export the PostgreSQL storage instance
+export const storage = new PostgresStorage();
