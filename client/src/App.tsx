@@ -13,6 +13,9 @@ import GroupsPage from "@/pages/groups-page";
 import GroupDetailPage from "@/pages/group-detail-page";
 import ZoomCallsPage from "@/pages/zoom-calls-page";
 import SubscriptionPage from "@/pages/subscription-page";
+import VerifyEmailPage from "@/pages/verify-email-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -23,6 +26,9 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
       <ProtectedRoute path="/forums" component={ForumsPage} />
       <ProtectedRoute path="/forums/:id" component={ForumDetailPage} />

@@ -6,6 +6,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import { generateToken, sendVerificationEmail, sendPasswordResetEmail } from "./email";
 
 declare global {
   namespace Express {
@@ -51,6 +52,12 @@ export function setupAuth(app: Express) {
         if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Incorrect username or password" });
         }
+        
+        // Check if user email is verified
+        if (!user.isVerified) {
+          return done(null, false, { message: "Please verify your email address before logging in" });
+        }
+        
         return done(null, user);
       } catch (error) {
         return done(error);
@@ -82,10 +89,25 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
+      // Generate verification token
+      const verificationToken = generateToken();
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
       const user = await storage.createUser({
         ...req.body,
         password: await hashPassword(req.body.password),
+        isVerified: false,
+        verificationToken,
+        verificationTokenExpiry
       });
+
+      // Send verification email
+      try {
+        await sendVerificationEmail(user.email, verificationToken);
+      } catch (emailError) {
+        console.error("Error sending verification email:", emailError);
+        // Continue registration process even if email fails
+      }
 
       req.login(user, (err) => {
         if (err) return next(err);
@@ -151,5 +173,153 @@ export function setupAuth(app: Express) {
     }
     
     next();
+  });
+
+  // Email verification routes
+  app.get("/api/verify-email", async (req, res, next) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Invalid verification token" });
+      }
+      
+      const user = await storage.getUserByVerificationToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ message: "Invalid verification token" });
+      }
+      
+      if (user.isVerified) {
+        return res.status(400).json({ message: "Email already verified" });
+      }
+      
+      // Check if token is expired
+      if (user.verificationTokenExpiry && new Date(user.verificationTokenExpiry) < new Date()) {
+        return res.status(400).json({ message: "Verification token has expired" });
+      }
+      
+      // Update user as verified
+      await storage.updateUser(user.id, {
+        isVerified: true,
+        verificationToken: null,
+        verificationTokenExpiry: null
+      });
+      
+      return res.status(200).json({ message: "Email verified successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/resend-verification", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const user = await storage.getUser(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (user.isVerified) {
+        return res.status(400).json({ message: "Email already verified" });
+      }
+      
+      // Generate new verification token
+      const verificationToken = generateToken();
+      const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Update user with new token
+      await storage.updateUser(user.id, {
+        verificationToken,
+        verificationTokenExpiry
+      });
+      
+      // Send verification email
+      try {
+        await sendVerificationEmail(user.email, verificationToken);
+        return res.status(200).json({ message: "Verification email sent" });
+      } catch (emailError) {
+        console.error("Error sending verification email:", emailError);
+        return res.status(500).json({ message: "Failed to send verification email" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Password reset routes
+  app.post("/api/forgot-password", async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // For security reasons, always return success even if email doesn't exist
+        return res.status(200).json({ message: "Password reset email sent if account exists" });
+      }
+      
+      // Generate reset token
+      const resetToken = generateToken();
+      const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      
+      // Update user with reset token
+      await storage.updateUser(user.id, {
+        passwordResetToken: resetToken,
+        passwordResetExpiry: resetTokenExpiry
+      });
+      
+      // Send password reset email
+      try {
+        await sendPasswordResetEmail(user.email, resetToken);
+      } catch (emailError) {
+        console.error("Error sending password reset email:", emailError);
+        // Still return success for security reasons
+      }
+      
+      return res.status(200).json({ message: "Password reset email sent if account exists" });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/reset-password", async (req, res, next) => {
+    try {
+      const { token, password } = req.body;
+      
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+      
+      const user = await storage.getUserByPasswordResetToken(token);
+      
+      if (!user) {
+        return res.status(400).json({ message: "Invalid or expired reset token" });
+      }
+      
+      // Check if token is expired
+      if (user.passwordResetExpiry && new Date(user.passwordResetExpiry) < new Date()) {
+        return res.status(400).json({ message: "Reset token has expired" });
+      }
+      
+      // Update user's password
+      await storage.updateUser(user.id, {
+        password: await hashPassword(password),
+        passwordResetToken: null,
+        passwordResetExpiry: null
+      });
+      
+      return res.status(200).json({ message: "Password reset successful" });
+    } catch (error) {
+      next(error);
+    }
   });
 }

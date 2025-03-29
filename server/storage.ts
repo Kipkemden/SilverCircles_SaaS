@@ -22,6 +22,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
+  getUserByPasswordResetToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, data: Partial<User>): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean, premiumUntil?: Date): Promise<User>;
@@ -195,6 +197,18 @@ export class MemStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+  }
+  
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.verificationToken === token
+    );
+  }
+  
+  async getUserByPasswordResetToken(token: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.passwordResetToken === token
     );
   }
 
@@ -571,6 +585,26 @@ export class PostgresStorage implements IStorage {
       return users[0];
     } catch (error) {
       console.error('Error getting user by email:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    try {
+      const users = await db.select().from(schema.users).where(eq(schema.users.verificationToken, token)).limit(1);
+      return users[0];
+    } catch (error) {
+      console.error('Error getting user by verification token:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserByPasswordResetToken(token: string): Promise<User | undefined> {
+    try {
+      const users = await db.select().from(schema.users).where(eq(schema.users.passwordResetToken, token)).limit(1);
+      return users[0];
+    } catch (error) {
+      console.error('Error getting user by password reset token:', error);
       return undefined;
     }
   }

@@ -7,6 +7,7 @@ import { ProfileCard } from "@/components/profile/profile-card";
 import { DashboardSidebar } from "@/components/layout/sidebar";
 import { ZoomCallCard } from "@/components/events/zoom-call-card";
 import { ForumPost } from "@/components/forum/forum-post";
+import { ResendVerificationEmail } from "@/components/resend-verification";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,6 +104,9 @@ export default function DashboardPage() {
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             <TabsContent value="dashboard" className="mt-0 space-y-8">
+              {/* Email Verification Banner */}
+              <ResendVerificationEmail />
+              
               {/* Profile Summary Card */}
               <ProfileCard />
               
