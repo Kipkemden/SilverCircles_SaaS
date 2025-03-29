@@ -577,7 +577,19 @@ export class PostgresStorage implements IStorage {
 
   async createUser(user: InsertUser): Promise<User> {
     try {
-      const result = await db.insert(schema.users).values(user).returning();
+      // Set default values for nullable fields that are not in InsertUser
+      const userWithDefaults = {
+        ...user,
+        premiumUntil: null,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        isPremium: false,
+        isAdmin: false,
+        aboutMe: user.aboutMe || null,
+        profileImage: user.profileImage || null
+      };
+      
+      const result = await db.insert(schema.users).values(userWithDefaults).returning();
       return result[0];
     } catch (error) {
       console.error('Error creating user:', error);
