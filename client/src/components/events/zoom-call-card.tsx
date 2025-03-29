@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar, Users, Video } from "lucide-react";
-import { format, isToday, isTomorrow, addToDate } from "date-fns";
+import { format, isToday, isTomorrow, subMinutes } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -95,7 +95,7 @@ export function ZoomCallCard({ call }: ZoomCallCardProps) {
   const canJoinCall = () => {
     const now = new Date();
     // Can join if current time is between 15 minutes before start and end time
-    return now >= addToDate(startDate, { minutes: -15 }) && now <= endDate;
+    return now >= subMinutes(startDate, 15) && now <= endDate;
   };
   
   return (
