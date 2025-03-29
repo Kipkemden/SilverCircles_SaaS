@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
-import { storage } from "./storage";
+import { storage } from "./supabase-storage";
 import Stripe from "stripe";
 import { z } from "zod";
 import { 
