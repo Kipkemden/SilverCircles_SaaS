@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   
-  const { data: upcomingCalls, isLoading: isLoadingCalls } = useQuery({
+  const { data: upcomingCalls = [], isLoading: isLoadingCalls } = useQuery<any[]>({
     queryKey: ["/api/user/zoom-calls"],
     enabled: !!user,
   });
@@ -33,12 +33,12 @@ export default function DashboardPage() {
   
   // Combine all forums and get posts from them
   const allForumIds = [
-    ...(publicForums || []).map(forum => forum.id),
-    ...(premiumForums || []).map(forum => forum.id),
+    ...(publicForums as any[] || []).map((forum: any) => forum.id),
+    ...(premiumForums as any[] || []).map((forum: any) => forum.id),
   ];
   
   // Fetch recent forum posts for the forums
-  const { data: recentPosts, isLoading: isLoadingPosts } = useQuery({
+  const { data: recentPosts = [], isLoading: isLoadingPosts } = useQuery<any[]>({
     queryKey: ["/api/recent-forum-posts"],
     enabled: !!user && allForumIds.length > 0,
     queryFn: async () => {
@@ -55,7 +55,7 @@ export default function DashboardPage() {
         // Flatten and sort by date
         return postsArrays
           .flat()
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 5);
       } catch (error) {
         console.error("Error fetching forum posts:", error);
@@ -69,8 +69,8 @@ export default function DashboardPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         {/* Page Tabs */}
-        <div className="mb-8 border-b border-neutral-200">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="mb-8 border-b border-neutral-200">
             <TabsList className="bg-transparent border-b-0">
               <TabsTrigger 
                 value="dashboard" 
@@ -97,121 +97,121 @@ export default function DashboardPage() {
                 Events
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content Area */}
-          <div className="lg:col-span-2">
-            <TabsContent value="dashboard" className="mt-0 space-y-8">
-              {/* Email Verification Banner */}
-              <ResendVerificationEmail />
-              
-              {/* Profile Summary Card */}
-              <ProfileCard />
-              
-              {/* Upcoming Zoom Calls Section */}
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-neutral-800">Upcoming Zoom Calls</h2>
-                  <Link href="/zoom-calls">
-                    <a className="text-primary hover:text-primary-dark font-medium text-sm">View All</a>
-                  </Link>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content Area */}
+            <div className="lg:col-span-2">
+              <TabsContent value="dashboard" className="mt-0 space-y-8">
+                {/* Email Verification Banner */}
+                <ResendVerificationEmail />
                 
-                {isLoadingCalls ? (
-                  <div className="space-y-4">
-                    <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
-                    <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
-                  </div>
-                ) : upcomingCalls && upcomingCalls.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingCalls.slice(0, 2).map((call) => (
-                      <ZoomCallCard key={call.id} call={call} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-neutral-600 mb-4">You don't have any upcoming Zoom calls.</p>
-                    <Link href="/groups">
-                      <Button variant="outline">Join Groups to Access Zoom Calls</Button>
+                {/* Profile Summary Card */}
+                <ProfileCard />
+                
+                {/* Upcoming Zoom Calls Section */}
+                <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-neutral-800">Upcoming Zoom Calls</h2>
+                    <Link href="/zoom-calls" className="text-primary hover:text-primary-dark font-medium text-sm">
+                      View All
                     </Link>
                   </div>
-                )}
-              </div>
+                  
+                  {isLoadingCalls ? (
+                    <div className="space-y-4">
+                      <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
+                      <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
+                    </div>
+                  ) : upcomingCalls && upcomingCalls.length > 0 ? (
+                    <div className="space-y-4">
+                      {upcomingCalls.slice(0, 2).map((call: any) => (
+                        <ZoomCallCard key={call.id} call={call} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-neutral-600 mb-4">You don't have any upcoming Zoom calls.</p>
+                      <Link href="/groups">
+                        <Button variant="outline">Join Groups to Access Zoom Calls</Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
 
-              {/* Recent Forum Activity */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-neutral-800">Recent Forum Activity</h2>
+                {/* Recent Forum Activity */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-neutral-800">Recent Forum Activity</h2>
+                    <Link href="/forums" className="text-primary hover:text-primary-dark font-medium text-sm">
+                      View All Forums
+                    </Link>
+                  </div>
+                  
+                  {isLoadingPosts ? (
+                    <div className="space-y-4">
+                      <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
+                      <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
+                      <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
+                    </div>
+                  ) : recentPosts && recentPosts.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentPosts.map((post: any) => (
+                        <ForumPost 
+                          key={post.id} 
+                          post={post} 
+                          onClick={() => window.location.href = `/forums/${post.forumId}?post=${post.id}`}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-neutral-600 mb-4">No recent forum activity to display.</p>
+                      <Link href="/forums">
+                        <Button variant="outline">Browse Forums</Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="groups" className="mt-0">
+                <div className="p-12 text-center">
+                  <h3 className="text-xl font-medium mb-4">Groups Section</h3>
+                  <p className="text-neutral-600 mb-6">Manage your groups directly from your dashboard tab, or visit the dedicated groups page for more features.</p>
+                  <Link href="/groups">
+                    <Button>Go to Groups Page</Button>
+                  </Link>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="forums" className="mt-0">
+                <div className="p-12 text-center">
+                  <h3 className="text-xl font-medium mb-4">Forums Section</h3>
+                  <p className="text-neutral-600 mb-6">View recent forum activity directly from your dashboard tab, or visit the dedicated forums page for more features.</p>
                   <Link href="/forums">
-                    <a className="text-primary hover:text-primary-dark font-medium text-sm">View All Forums</a>
+                    <Button>Go to Forums Page</Button>
                   </Link>
                 </div>
-                
-                {isLoadingPosts ? (
-                  <div className="space-y-4">
-                    <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
-                    <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
-                    <div className="h-32 bg-neutral-100 animate-pulse rounded-lg"></div>
-                  </div>
-                ) : recentPosts && recentPosts.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentPosts.map((post) => (
-                      <ForumPost 
-                        key={post.id} 
-                        post={post} 
-                        onClick={() => window.location.href = `/forums/${post.forumId}?post=${post.id}`}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-neutral-600 mb-4">No recent forum activity to display.</p>
-                    <Link href="/forums">
-                      <Button variant="outline">Browse Forums</Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+              </TabsContent>
+              
+              <TabsContent value="events" className="mt-0">
+                <div className="p-12 text-center">
+                  <h3 className="text-xl font-medium mb-4">Events Section</h3>
+                  <p className="text-neutral-600 mb-6">View upcoming Zoom calls directly from your dashboard tab, or visit the dedicated events page for more features.</p>
+                  <Link href="/zoom-calls">
+                    <Button>Go to Events Page</Button>
+                  </Link>
+                </div>
+              </TabsContent>
+            </div>
             
-            <TabsContent value="groups" className="mt-0">
-              <div className="p-12 text-center">
-                <h3 className="text-xl font-medium mb-4">Groups Section</h3>
-                <p className="text-neutral-600 mb-6">Manage your groups directly from your dashboard tab, or visit the dedicated groups page for more features.</p>
-                <Link href="/groups">
-                  <Button>Go to Groups Page</Button>
-                </Link>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="forums" className="mt-0">
-              <div className="p-12 text-center">
-                <h3 className="text-xl font-medium mb-4">Forums Section</h3>
-                <p className="text-neutral-600 mb-6">View recent forum activity directly from your dashboard tab, or visit the dedicated forums page for more features.</p>
-                <Link href="/forums">
-                  <Button>Go to Forums Page</Button>
-                </Link>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="events" className="mt-0">
-              <div className="p-12 text-center">
-                <h3 className="text-xl font-medium mb-4">Events Section</h3>
-                <p className="text-neutral-600 mb-6">View upcoming Zoom calls directly from your dashboard tab, or visit the dedicated events page for more features.</p>
-                <Link href="/zoom-calls">
-                  <Button>Go to Events Page</Button>
-                </Link>
-              </div>
-            </TabsContent>
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <DashboardSidebar />
+            </div>
           </div>
-          
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <DashboardSidebar />
-          </div>
-        </div>
+        </Tabs>
       </main>
       <Footer />
     </div>

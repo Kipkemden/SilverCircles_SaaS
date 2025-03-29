@@ -163,11 +163,9 @@ export default function GroupDetailPage() {
             ) : group ? (
               <div className="mb-6">
                 <div className="flex items-center mb-2">
-                  <Link href="/groups">
-                    <a className="text-neutral-500 hover:text-primary flex items-center mr-3">
-                      <ChevronLeft size={18} />
-                      <span>Back to Groups</span>
-                    </a>
+                  <Link href="/groups" className="text-neutral-500 hover:text-primary flex items-center mr-3">
+                    <ChevronLeft size={18} />
+                    <span>Back to Groups</span>
                   </Link>
                 </div>
                 

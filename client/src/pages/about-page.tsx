@@ -20,12 +20,12 @@ export default function AboutPage() {
                 Small, online support groups built for adults 45 to 70, tackling life's big shifts together.
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <Button size="lg" className="font-medium" asChild>
-                  <Link href="/auth">Join Today</Link>
-                </Button>
-                <Button size="lg" variant="outline" className="font-medium" asChild>
-                  <Link href="/subscription">Learn About Pricing</Link>
-                </Button>
+                <Link href="/auth">
+                  <Button size="lg" className="font-medium">Join Today</Button>
+                </Link>
+                <Link href="/subscription">
+                  <Button size="lg" variant="outline" className="font-medium">Learn About Pricing</Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -132,9 +132,9 @@ export default function AboutPage() {
               </div>
               
               <div className="text-center mt-10">
-                <Button size="lg" className="font-medium" asChild>
-                  <Link href="/auth">Start Your Journey Today</Link>
-                </Button>
+                <Link href="/auth">
+                  <Button size="lg" className="font-medium">Start Your Journey Today</Button>
+                </Link>
               </div>
             </div>
           </div>

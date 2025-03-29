@@ -94,20 +94,20 @@ export function Header() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem className="cursor-pointer" asChild>
-                    <Link href="/dashboard">Dashboard</Link>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/dashboard"}>
+                    Dashboard
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" asChild>
-                    <Link href="/profile">Profile</Link>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/profile"}>
+                    Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" asChild>
-                    <Link href="/settings">Settings</Link>
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/settings"}>
+                    Settings
                   </DropdownMenuItem>
                   {user.isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href="/admin">Admin Panel</Link>
+                      <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/admin"}>
+                        Admin Panel
                       </DropdownMenuItem>
                     </>
                   )}

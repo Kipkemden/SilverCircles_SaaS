@@ -64,11 +64,11 @@ export function MembershipCard() {
         )}
       </div>
       
-      <Link href="/subscription">
-        <Button className="w-full">
+      <Button className="w-full" asChild>
+        <Link href="/subscription">
           {user.isPremium ? "Manage Subscription" : "Upgrade to Premium"}
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </Card>
   );
 }
@@ -87,8 +87,8 @@ export function UserGroupsSidebar() {
     <Card className="p-6 mb-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-neutral-800">Your Groups</h2>
-        <Link href="/groups">
-          <a className="text-primary hover:text-primary-dark font-medium text-sm">View All</a>
+        <Link href="/groups" className="text-primary hover:text-primary-dark font-medium text-sm">
+          View All
         </Link>
       </div>
       
@@ -100,8 +100,8 @@ export function UserGroupsSidebar() {
       ) : userGroups?.length === 0 ? (
         <p className="text-neutral-600 text-center py-4">
           You haven't joined any groups yet. 
-          <Link href="/groups">
-            <a className="text-primary ml-1">Browse groups</a>
+          <Link href="/groups" className="text-primary ml-1">
+            Browse groups
           </Link>
         </p>
       ) : (
