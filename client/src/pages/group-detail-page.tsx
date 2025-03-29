@@ -21,6 +21,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { GroupWithMembers, ZoomCallWithGroup, User } from "@shared/schema";
 
 // New Zoom call schema
 const zoomCallSchema = z.object({
@@ -41,13 +42,13 @@ export default function GroupDetailPage() {
   const [newCallDialogOpen, setNewCallDialogOpen] = useState(false);
   
   // Group details query
-  const { data: group, isLoading: isLoadingGroup } = useQuery({
+  const { data: group, isLoading: isLoadingGroup } = useQuery<GroupWithMembers>({
     queryKey: [`/api/groups/${groupId}`],
     enabled: !!groupId,
   });
   
   // Group zoom calls query
-  const { data: calls, isLoading: isLoadingCalls } = useQuery({
+  const { data: calls, isLoading: isLoadingCalls } = useQuery<ZoomCallWithGroup[]>({
     queryKey: [`/api/groups/${groupId}/zoom-calls`],
     enabled: !!groupId && !!user,
   });
@@ -143,7 +144,7 @@ export default function GroupDetailPage() {
   };
   
   // Check if user is a member of the group
-  const isUserMember = group?.members?.some(member => member.id === user?.id);
+  const isUserMember = group?.members?.some((member: User) => member.id === user?.id);
   
   // Check if this is a premium group and user doesn't have premium
   const isPremiumAndNotSubscribed = group?.isPremium && !user?.isPremium;
@@ -214,10 +215,10 @@ export default function GroupDetailPage() {
                     <div>
                       <h3 className="text-lg font-bold mb-3">Group Members</h3>
                       <div className="flex flex-wrap gap-4">
-                        {group.members.map((member) => (
+                        {group.members.map((member: User) => (
                           <div key={member.id} className="flex flex-col items-center">
                             <Avatar className="h-12 w-12 mb-1">
-                              <AvatarImage src={member.profileImage} />
+                              {member.profileImage && <AvatarImage src={member.profileImage} />}
                               <AvatarFallback>
                                 {member.fullName 
                                   ? `${member.fullName.split(' ')[0][0]}${member.fullName.split(' ')[1]?.[0] || ''}`
@@ -267,7 +268,19 @@ export default function GroupDetailPage() {
                     ) : calls && calls.length > 0 ? (
                       <div className="space-y-4">
                         {calls.map((call) => (
-                          <ZoomCallCard key={call.id} call={call} />
+                          <ZoomCallCard key={call.id} call={{
+                            id: call.id,
+                            title: call.title,
+                            description: call.description || undefined,
+                            startTime: call.startTime.toString(),
+                            endTime: call.endTime.toString(),
+                            zoomLink: call.zoomLink,
+                            groupId: call.groupId,
+                            group: call.group ? {
+                              id: call.group.id,
+                              name: call.group.name
+                            } : undefined,
+                          }} />
                         ))}
                       </div>
                     ) : (
