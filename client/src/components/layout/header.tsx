@@ -47,29 +47,21 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/forums">
-              <a className={`${isActivePath("/forums") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                Forums
-              </a>
+            <Link href="/forums" className={`${isActivePath("/forums") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+              Forums
             </Link>
             
             {/* Only show these links if user is logged in */}
             {user && (
               <>
-                <Link href="/groups">
-                  <a className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                    Groups
-                  </a>
+                <Link href="/groups" className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                  Groups
                 </Link>
-                <Link href="/zoom-calls">
-                  <a className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                    Events
-                  </a>
+                <Link href="/zoom-calls" className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                  Events
                 </Link>
-                <Link href="/dashboard">
-                  <a className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                    Dashboard
-                  </a>
+                <Link href="/dashboard" className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                  Dashboard
                 </Link>
               </>
             )}
@@ -134,41 +126,57 @@ export function Header() {
           <div className="md:hidden mt-4 pb-2">
             <nav className="flex flex-col space-y-3">
               {/* Forums link visible to all */}
-              <Link href="/forums">
-                <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/forums") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                  Forums
-                </a>
+              <Link 
+                href="/forums" 
+                className={`${isActivePath("/forums") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Forums
               </Link>
               
               {/* Links visible only to logged in users */}
               {user && (
                 <>
-                  <Link href="/dashboard">
-                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                      Dashboard
-                    </a>
+                  <Link 
+                    href="/dashboard" 
+                    className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
                   </Link>
-                  <Link href="/groups">
-                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                      Groups
-                    </a>
+                  <Link 
+                    href="/groups" 
+                    className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Groups
                   </Link>
-                  <Link href="/zoom-calls">
-                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                      Events
-                    </a>
+                  <Link 
+                    href="/zoom-calls" 
+                    className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Events
                   </Link>
                 </>
               )}
               
               {user ? (
                 <>
-                  <Link href="/profile">
-                    <a onClick={() => setMobileMenuOpen(false)} className="text-neutral-800 hover:text-primary font-medium">Profile</a>
+                  <Link 
+                    href="/profile" 
+                    onClick={() => setMobileMenuOpen(false)} 
+                    className="text-neutral-800 hover:text-primary font-medium"
+                  >
+                    Profile
                   </Link>
                   {user.isAdmin && (
-                    <Link href="/admin">
-                      <a onClick={() => setMobileMenuOpen(false)} className="text-neutral-800 hover:text-primary font-medium">Admin Panel</a>
+                    <Link 
+                      href="/admin" 
+                      onClick={() => setMobileMenuOpen(false)} 
+                      className="text-neutral-800 hover:text-primary font-medium"
+                    >
+                      Admin Panel
                     </Link>
                   )}
                   <a
