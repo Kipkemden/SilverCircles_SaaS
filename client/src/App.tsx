@@ -17,7 +17,6 @@ import VerifyEmailPage from "@/pages/verify-email-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import AdminDashboard from "@/pages/admin/admin-dashboard";
-import { SupabaseAuthProvider } from "@/hooks/use-supabase-auth";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 
@@ -46,12 +45,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SupabaseAuthProvider>
-        <AuthProvider>
-          <Router />
-          <Toaster />
-        </AuthProvider>
-      </SupabaseAuthProvider>
+      <AuthProvider>
+        <Router />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

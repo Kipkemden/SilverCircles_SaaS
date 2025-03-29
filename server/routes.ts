@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
-import { storage } from "./supabase-storage";
+import { storage } from "./storage";
 import Stripe from "stripe";
 import { z } from "zod";
 import { 
@@ -13,74 +13,15 @@ import {
   insertZoomCallSchema
 } from "@shared/schema";
 import { sendVerificationEmail, sendPasswordResetEmail, generateToken } from "./email";
-import { supabase } from "./supabase";
 
-// Check if the required Stripe environment variables are set
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn("STRIPE_SECRET_KEY environment variable is not set. Stripe payments functionality will be unavailable.");
-}
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_your_key_here";
+const stripePriceId = process.env.STRIPE_PRICE_ID || "price_your_id_here";
 
-// Default price ID for monthly subscription
-const stripePriceId = process.env.STRIPE_PRICE_ID || "";
-
-// Initialize Stripe if the secret key is available
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as any }) 
-  : null;
+const stripe = new Stripe(stripeSecretKey);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
   setupAuth(app);
-  
-  // Supabase Auth Sync API
-  app.post("/api/supabase-sync", async (req, res) => {
-    try {
-      const { userId } = req.body;
-      
-      if (!userId) {
-        return res.status(400).json({ message: "Supabase user ID is required" });
-      }
-      
-      // Fetch the Supabase user data
-      const { data: supabaseUserData, error } = await supabase.auth.admin.getUserById(userId);
-      
-      if (error) {
-        return res.status(400).json({ message: "Invalid Supabase user ID" });
-      }
-      
-      const supabaseUser = supabaseUserData.user;
-      
-      // Check if this user already exists in our database
-      let user = await storage.getUserByEmail(supabaseUser.email || "");
-      
-      // If user doesn't exist, create them
-      if (!user) {
-        const userMetadata = supabaseUser.user_metadata;
-        user = await storage.createUser({
-          username: supabaseUser.email?.split("@")[0] || `user_${Date.now()}`,
-          email: supabaseUser.email || "",
-          password: "", // We don't need password as auth is handled by Supabase
-          fullName: userMetadata?.full_name || "",
-          isVerified: supabaseUser.email_confirmed_at ? true : false,
-          verificationToken: null,
-          passwordResetToken: null,
-          supabaseId: supabaseUser.id,
-        });
-      }
-      
-      // Create a session for the user
-      req.login(user, (err) => {
-        if (err) {
-          return res.status(500).json({ message: "Failed to create session" });
-        }
-        
-        return res.status(200).json(user);
-      });
-    } catch (error) {
-      console.error("Supabase sync error:", error);
-      res.status(500).json({ message: "Failed to sync with Supabase" });
-    }
-  });
   
   // Forums API
   app.get("/api/forums", async (req, res) => {
@@ -540,17 +481,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Authentication required" });
     }
     
-    // Check if Stripe is configured
-    if (!stripe || !stripePriceId) {
-      return res.status(503).json({ 
-        message: "Payment service is currently unavailable. Please contact support."
-      });
-    }
-    
     const user = req.user;
     
     // If user already has an active subscription
-    if (user.isPremium && user.stripeSubscriptionId && stripe) {
+    if (user.isPremium && user.stripeSubscriptionId) {
       try {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
         
@@ -566,13 +500,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
-    // Ensure Stripe is available
-    if (!stripe) {
-      return res.status(503).json({ 
-        message: "Payment service is currently unavailable. Please contact support."
-      });
-    }
-
     try {
       // Create or get Stripe customer
       let customerId = user.stripeCustomerId;

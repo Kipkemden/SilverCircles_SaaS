@@ -1,13 +1,15 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
 import * as schema from "@shared/schema";
-import { supabase } from './supabase';
 
-// For server-side we'll use pooled connections to improve performance
-// We'll use the connection provided by the environment variable DATABASE_URL which is set by Replit
+neonConfig.webSocketConstructor = ws;
+
 if (!process.env.DATABASE_URL) {
-  throw new Error('Missing DATABASE_URL environment variable');
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
 }
 
-const client = postgres(process.env.DATABASE_URL);
-export const db = drizzle(client, { schema });
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });

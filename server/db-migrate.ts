@@ -1,21 +1,18 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import { sql } from "drizzle-orm";
+import ws from "ws";
 import * as schema from "@shared/schema";
+
+neonConfig.webSocketConstructor = ws;
 
 async function runMigrations() {
   console.log("Running database migrations...");
-  
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-    throw new Error('Missing Supabase credentials');
-  }
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
 
-  // Extract the connection string from the Supabase URL
-  const projectRef = process.env.SUPABASE_URL.match(/https:\/\/(.*?)\.supabase\.co/)?.[1];
-  const dbUrl = `postgresql://postgres:${process.env.SUPABASE_SERVICE_KEY}@db.${projectRef}.supabase.co:5432/postgres`;
-  
-  const client = postgres(dbUrl);
-  const db = drizzle(client, { schema });
+  const db = drizzle(pool, { schema });
 
   try {
     await db.execute(sql`
@@ -31,7 +28,7 @@ async function runMigrations() {
   } catch (error) {
     console.error("Migration error:", error);
   } finally {
-    await client.end();
+    await pool.end();
   }
 }
 

@@ -4,7 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./supabase-storage";
+import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import { generateToken, sendVerificationEmail, sendPasswordResetEmail } from "./email";
 
@@ -49,30 +49,18 @@ export function setupAuth(app: Express) {
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        if (!user) {
+        if (!user || !(await comparePasswords(password, user.password))) {
           return done(null, false, { message: "Incorrect username or password" });
         }
         
-        try {
-          const isPasswordMatch = await comparePasswords(password, user.password);
-          
-          if (!isPasswordMatch) {
-            return done(null, false, { message: "Incorrect username or password" });
-          }
-          
-          // Check if user email is verified
-          if (!user.isVerified) {
-            return done(null, false, { message: "Please verify your email address before logging in" });
-          }
-          
-          return done(null, user);
-        } catch (passwordError) {
-          console.error("Error comparing passwords:", passwordError);
-          return done(null, false, { message: "Authentication error" });
+        // Check if user email is verified
+        if (!user.isVerified) {
+          return done(null, false, { message: "Please verify your email address before logging in" });
         }
+        
+        return done(null, user);
       } catch (error) {
-        console.error("Error in LocalStrategy:", error);
-        return done(null, false, { message: "Authentication error" });
+        return done(error);
       }
     }),
   );
@@ -81,14 +69,9 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      if (!user) {
-        // User not found, return null instead of throwing an error
-        return done(null, null);
-      }
-      return done(null, user);
+      done(null, user);
     } catch (error) {
-      console.error("Error deserializing user:", error);
-      return done(error);
+      done(error);
     }
   });
 
@@ -138,20 +121,13 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: Error | null, user: any, info: { message: string } | undefined) => {
-      if (err) {
-        console.error("Error during authentication:", err);
-        return next(err);
-      }
+    passport.authenticate("local", (err, user, info) => {
+      if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: info?.message || "Authentication failed" });
       }
-      
-      req.login(user, (loginErr: Error | null) => {
-        if (loginErr) {
-          console.error("Error during login:", loginErr);
-          return next(loginErr);
-        }
+      req.login(user, (err) => {
+        if (err) return next(err);
         // Don't send the password in the response
         const { password, ...userWithoutPassword } = user;
         return res.status(200).json(userWithoutPassword);
@@ -160,11 +136,8 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
-    req.logout((err: Error | null) => {
-      if (err) {
-        console.error("Error during logout:", err);
-        return next(err);
-      }
+    req.logout((err) => {
+      if (err) return next(err);
       res.sendStatus(200);
     });
   });
