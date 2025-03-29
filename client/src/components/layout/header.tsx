@@ -94,21 +94,29 @@ export function Header() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/dashboard"}>
-                    Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/profile"}>
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/settings"}>
-                    Settings
-                  </DropdownMenuItem>
+                  <Link href="/dashboard" className="w-full">
+                    <DropdownMenuItem className="cursor-pointer">
+                      Dashboard
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/profile" className="w-full">
+                    <DropdownMenuItem className="cursor-pointer">
+                      Profile
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/settings" className="w-full">
+                    <DropdownMenuItem className="cursor-pointer">
+                      Settings
+                    </DropdownMenuItem>
+                  </Link>
                   {user.isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = "/admin"}>
-                        Admin Panel
-                      </DropdownMenuItem>
+                      <Link href="/admin" className="w-full">
+                        <DropdownMenuItem className="cursor-pointer">
+                          Admin Panel
+                        </DropdownMenuItem>
+                      </Link>
                     </>
                   )}
                   <DropdownMenuSeparator />

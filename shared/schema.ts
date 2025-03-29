@@ -20,6 +20,7 @@ export const users = pgTable("users", {
   verificationTokenExpiry: timestamp("verification_token_expiry"),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpiry: timestamp("password_reset_expiry"),
+  supabaseId: text("supabase_id").unique(), // Supabase user ID to link accounts
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
@@ -88,7 +89,11 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   fullName: true,
   aboutMe: true,
-  profileImage: true
+  profileImage: true,
+  isVerified: true,
+  verificationToken: true,
+  passwordResetToken: true,
+  supabaseId: true
 });
 
 export const insertGroupSchema = createInsertSchema(groups).pick({

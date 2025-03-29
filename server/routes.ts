@@ -13,6 +13,7 @@ import {
   insertZoomCallSchema
 } from "@shared/schema";
 import { sendVerificationEmail, sendPasswordResetEmail, generateToken } from "./email";
+import { supabase } from "./supabase";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_your_key_here";
 const stripePriceId = process.env.STRIPE_PRICE_ID || "price_your_id_here";
@@ -22,6 +23,56 @@ const stripe = new Stripe(stripeSecretKey);
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
   setupAuth(app);
+  
+  // Supabase Auth Sync API
+  app.post("/api/supabase-sync", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "Supabase user ID is required" });
+      }
+      
+      // Fetch the Supabase user data
+      const { data: supabaseUserData, error } = await supabase.auth.admin.getUserById(userId);
+      
+      if (error) {
+        return res.status(400).json({ message: "Invalid Supabase user ID" });
+      }
+      
+      const supabaseUser = supabaseUserData.user;
+      
+      // Check if this user already exists in our database
+      let user = await storage.getUserByEmail(supabaseUser.email || "");
+      
+      // If user doesn't exist, create them
+      if (!user) {
+        const userMetadata = supabaseUser.user_metadata;
+        user = await storage.createUser({
+          username: supabaseUser.email?.split("@")[0] || `user_${Date.now()}`,
+          email: supabaseUser.email || "",
+          password: "", // We don't need password as auth is handled by Supabase
+          fullName: userMetadata?.full_name || "",
+          isVerified: supabaseUser.email_confirmed_at ? true : false,
+          verificationToken: null,
+          passwordResetToken: null,
+          supabaseId: supabaseUser.id,
+        });
+      }
+      
+      // Create a session for the user
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Failed to create session" });
+        }
+        
+        return res.status(200).json(user);
+      });
+    } catch (error) {
+      console.error("Supabase sync error:", error);
+      res.status(500).json({ message: "Failed to sync with Supabase" });
+    }
+  });
   
   // Forums API
   app.get("/api/forums", async (req, res) => {

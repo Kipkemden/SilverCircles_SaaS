@@ -11,7 +11,8 @@ import type {
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
-import { pool, db } from './db';
+import { db } from './db';
+import { supabase } from './supabase';
 import { eq, and, or, not, SQL, gt, desc, asc } from 'drizzle-orm';
 import connectPg from 'connect-pg-simple';
 
@@ -550,11 +551,10 @@ export class PostgresStorage implements IStorage {
   sessionStore: any;
 
   constructor() {
-    // Set up session store using the imported pool
-    const PostgresSessionStore = connectPg(session);
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true
+    // Set up a memory store for sessions for now
+    // This will be replaced with a proper Supabase session store in production
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // 1 day
     });
   }
 
