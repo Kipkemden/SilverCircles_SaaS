@@ -70,10 +70,10 @@ export function Header() {
             {!user && (
               <div className="flex space-x-3">
                 <Link href="/auth">
-                  <Button variant="outline">Log In</Button>
+                  <Button variant="outline" className="w-full">Log In</Button>
                 </Link>
-                <Link href="/auth">
-                  <Button>Sign Up</Button>
+                <Link href="/auth?signup=true">
+                  <Button className="w-full">Sign Up</Button>
                 </Link>
               </div>
             )}
@@ -94,21 +94,21 @@ export function Header() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <Link href="/dashboard">
-                    <DropdownMenuItem className="cursor-pointer">Dashboard</DropdownMenuItem>
-                  </Link>
-                  <Link href="/profile">
-                    <DropdownMenuItem className="cursor-pointer">Profile</DropdownMenuItem>
-                  </Link>
-                  <Link href="/settings">
-                    <DropdownMenuItem className="cursor-pointer">Settings</DropdownMenuItem>
-                  </Link>
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/settings">Settings</Link>
+                  </DropdownMenuItem>
                   {user.isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <Link href="/admin">
-                        <DropdownMenuItem className="cursor-pointer">Admin Panel</DropdownMenuItem>
-                      </Link>
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/admin">Admin Panel</Link>
+                      </DropdownMenuItem>
                     </>
                   )}
                   <DropdownMenuSeparator />

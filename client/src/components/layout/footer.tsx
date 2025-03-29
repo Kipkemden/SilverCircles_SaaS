@@ -30,23 +30,23 @@ export function Footer() {
             <h3 className="font-bold text-lg mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about">
-                  <a className="text-neutral-400 hover:text-white transition">About Us</a>
+                <Link href="/about" className="text-neutral-400 hover:text-white transition">
+                  About Us
                 </Link>
               </li>
               <li>
-                <Link href="/team">
-                  <a className="text-neutral-400 hover:text-white transition">Our Team</a>
+                <Link href="/team" className="text-neutral-400 hover:text-white transition">
+                  Our Team
                 </Link>
               </li>
               <li>
-                <Link href="/careers">
-                  <a className="text-neutral-400 hover:text-white transition">Careers</a>
+                <Link href="/careers" className="text-neutral-400 hover:text-white transition">
+                  Careers
                 </Link>
               </li>
               <li>
-                <Link href="/contact">
-                  <a className="text-neutral-400 hover:text-white transition">Contact</a>
+                <Link href="/contact" className="text-neutral-400 hover:text-white transition">
+                  Contact
                 </Link>
               </li>
             </ul>
@@ -55,23 +55,23 @@ export function Footer() {
             <h3 className="font-bold text-lg mb-4">Resources</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/blog">
-                  <a className="text-neutral-400 hover:text-white transition">Blog</a>
+                <Link href="/blog" className="text-neutral-400 hover:text-white transition">
+                  Blog
                 </Link>
               </li>
               <li>
-                <Link href="/help">
-                  <a className="text-neutral-400 hover:text-white transition">Help Center</a>
+                <Link href="/help" className="text-neutral-400 hover:text-white transition">
+                  Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/guidelines">
-                  <a className="text-neutral-400 hover:text-white transition">Community Guidelines</a>
+                <Link href="/guidelines" className="text-neutral-400 hover:text-white transition">
+                  Community Guidelines
                 </Link>
               </li>
               <li>
-                <Link href="/stories">
-                  <a className="text-neutral-400 hover:text-white transition">Success Stories</a>
+                <Link href="/stories" className="text-neutral-400 hover:text-white transition">
+                  Success Stories
                 </Link>
               </li>
             </ul>
@@ -80,23 +80,23 @@ export function Footer() {
             <h3 className="font-bold text-lg mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/terms">
-                  <a className="text-neutral-400 hover:text-white transition">Terms of Service</a>
+                <Link href="/terms" className="text-neutral-400 hover:text-white transition">
+                  Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy">
-                  <a className="text-neutral-400 hover:text-white transition">Privacy Policy</a>
+                <Link href="/privacy" className="text-neutral-400 hover:text-white transition">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/cookies">
-                  <a className="text-neutral-400 hover:text-white transition">Cookie Policy</a>
+                <Link href="/cookies" className="text-neutral-400 hover:text-white transition">
+                  Cookie Policy
                 </Link>
               </li>
               <li>
-                <Link href="/accessibility">
-                  <a className="text-neutral-400 hover:text-white transition">Accessibility</a>
+                <Link href="/accessibility" className="text-neutral-400 hover:text-white transition">
+                  Accessibility
                 </Link>
               </li>
             </ul>
