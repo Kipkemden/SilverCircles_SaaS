@@ -165,10 +165,74 @@ export default function ForumDetailPage() {
                 <p className="text-neutral-700 mb-6">{forum.description}</p>
                 
                 {!isPremiumAndNotSubscribed ? (
-                  <Button onClick={() => setNewPostDialogOpen(true)}>
-                    <MessageSquare size={16} className="mr-2" />
-                    New Post
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <MessageSquare size={16} className="mr-2" />
+                        New Post
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Create New Post</DialogTitle>
+                        <DialogDescription>
+                          Start a new discussion in the {forum?.title} forum
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <Form {...postForm}>
+                        <form onSubmit={postForm.handleSubmit(onPostSubmit)} className="space-y-4">
+                          <FormField
+                            control={postForm.control}
+                            name="title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter a descriptive title" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={postForm.control}
+                            name="content"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Content</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Share your thoughts, questions, or insights..." 
+                                    className="min-h-[150px]"
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => postForm.reset()}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              disabled={createPostMutation.isPending}
+                            >
+                              {createPostMutation.isPending ? "Creating..." : "Create Post"}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
                 ) : (
                   <div className="bg-white rounded-xl p-6 border border-yellow-300 mb-6">
                     <div className="flex items-start">
@@ -291,70 +355,6 @@ export default function ForumDetailPage() {
         </div>
       </main>
       <Footer />
-      
-      {/* New Post Dialog */}
-      <Dialog open={newPostDialogOpen} onOpenChange={setNewPostDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create New Post</DialogTitle>
-            <DialogDescription>
-              Start a new discussion in the {forum?.title} forum
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Form {...postForm}>
-            <form onSubmit={postForm.handleSubmit(onPostSubmit)} className="space-y-4">
-              <FormField
-                control={postForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter a descriptive title" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={postForm.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Share your thoughts, questions, or insights..." 
-                        className="min-h-[150px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setNewPostDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={createPostMutation.isPending}
-                >
-                  {createPostMutation.isPending ? "Creating..." : "Create Post"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
