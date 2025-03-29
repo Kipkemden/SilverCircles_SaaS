@@ -1,8 +1,5 @@
 // Load environment variables
-require('dotenv').config();
-
-// Execute with tsx for TypeScript support
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
 try {
   console.log('Setting up Supabase database tables...');

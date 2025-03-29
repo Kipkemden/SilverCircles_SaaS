@@ -1,23 +1,5 @@
-// This script creates all the necessary tables in Supabase using the Supabase client
-import { supabase } from './supabase';
+-- SQL script to create all required tables in Supabase
 
-async function createTables() {
-  console.log('Creating Supabase tables...');
-  
-  try {
-    // We'll use Supabase's Data API to create tables
-    // Note: In a production environment, this should be done through Supabase's migration tools
-    // or directly in the Supabase dashboard
-    
-    // Create users table if it doesn't exist
-    let { error: checkUsersError, count } = await supabase.from('users').select('*', { count: 'exact', head: true });
-    
-    if (checkUsersError && checkUsersError.code === '42P01') { // relation "users" does not exist
-      console.log('Creating users table...');
-      
-      // We can't create tables through the Data API directly, so we'll need to notify the user
-      console.log('Please create the following tables in your Supabase dashboard:');
-      console.log(`
 CREATE TABLE IF NOT EXISTS public.users (
   id SERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
@@ -107,29 +89,4 @@ CREATE TABLE IF NOT EXISTS public.zoom_call_participants (
   FOREIGN KEY (call_id) REFERENCES zoom_calls(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   UNIQUE (call_id, user_id)
-);`);
-
-      console.log('\nYou will need to execute these SQL statements in the Supabase SQL editor.');
-      console.log('Go to your Supabase project dashboard > SQL Editor > New query');
-      console.log('Paste the SQL above and run it to create all the necessary tables.');
-    } else {
-      console.log('Tables appear to be set up already. If you encounter issues, create the tables manually in the Supabase dashboard.');
-    }
-    
-  } catch (error) {
-    console.error('Error checking tables:', error);
-  }
-}
-
-// Execute the function
-createTables()
-  .then(() => {
-    console.log('Table creation process completed');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Error in table creation process:', error);
-    process.exit(1);
-  });
-
-export { createTables };
+);
