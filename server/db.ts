@@ -3,23 +3,11 @@ import postgres from 'postgres';
 import * as schema from "@shared/schema";
 import { supabase } from './supabase';
 
-// Connect directly to the Supabase PostgreSQL database
-if (!process.env.SUPABASE_URL) {
-  throw new Error('Missing Supabase URL');
+// For server-side we'll use pooled connections to improve performance
+// We'll use the connection provided by the environment variable DATABASE_URL which is set by Replit
+if (!process.env.DATABASE_URL) {
+  throw new Error('Missing DATABASE_URL environment variable');
 }
 
-// Extract the connection string from the Supabase URL
-// Format: https://[project].supabase.co -> postgres://postgres:[service_key]@db.[project].supabase.co:5432/postgres
-const projectRef = process.env.SUPABASE_URL.match(/https:\/\/(.*?)\.supabase\.co/)?.[1];
-if (!projectRef) {
-  throw new Error('Invalid Supabase URL format');
-}
-
-if (!process.env.SUPABASE_SERVICE_KEY) {
-  throw new Error('Missing Supabase service key');
-}
-
-const dbUrl = `postgresql://postgres:${process.env.SUPABASE_SERVICE_KEY}@db.${projectRef}.supabase.co:5432/postgres`;
-
-const client = postgres(dbUrl);
+const client = postgres(process.env.DATABASE_URL);
 export const db = drizzle(client, { schema });

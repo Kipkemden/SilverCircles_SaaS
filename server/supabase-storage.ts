@@ -84,12 +84,13 @@ export class SupabaseStorage implements IStorage {
     this.db = db;
     const PostgresStore = connectPg(session);
     
-    // Extract the connection string for session store
-    const projectRef = process.env.SUPABASE_URL?.match(/https:\/\/(.*?)\.supabase\.co/)?.[1];
-    const dbUrl = `postgresql://postgres:${process.env.SUPABASE_SERVICE_KEY}@db.${projectRef}.supabase.co:5432/postgres`;
+    // Use the DATABASE_URL provided by Replit for session store
+    if (!process.env.DATABASE_URL) {
+      throw new Error('Missing DATABASE_URL environment variable');
+    }
     
     this.sessionStore = new PostgresStore({
-      conString: dbUrl,
+      conString: process.env.DATABASE_URL,
       createTableIfMissing: true
     });
   }
