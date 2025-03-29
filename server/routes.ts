@@ -15,10 +15,18 @@ import {
 import { sendVerificationEmail, sendPasswordResetEmail, generateToken } from "./email";
 import { supabase } from "./supabase";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_your_key_here";
-const stripePriceId = process.env.STRIPE_PRICE_ID || "price_your_id_here";
+// Check if the required Stripe environment variables are set
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn("STRIPE_SECRET_KEY environment variable is not set. Stripe payments functionality will be unavailable.");
+}
 
-const stripe = new Stripe(stripeSecretKey);
+// Default price ID for monthly subscription
+const stripePriceId = process.env.STRIPE_PRICE_ID || "";
+
+// Initialize Stripe if the secret key is available
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' as any }) 
+  : null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes and middleware
@@ -532,10 +540,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Authentication required" });
     }
     
+    // Check if Stripe is configured
+    if (!stripe || !stripePriceId) {
+      return res.status(503).json({ 
+        message: "Payment service is currently unavailable. Please contact support."
+      });
+    }
+    
     const user = req.user;
     
     // If user already has an active subscription
-    if (user.isPremium && user.stripeSubscriptionId) {
+    if (user.isPremium && user.stripeSubscriptionId && stripe) {
       try {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
         
@@ -551,6 +566,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
+    // Ensure Stripe is available
+    if (!stripe) {
+      return res.status(503).json({ 
+        message: "Payment service is currently unavailable. Please contact support."
+      });
+    }
+
     try {
       // Create or get Stripe customer
       let customerId = user.stripeCustomerId;
