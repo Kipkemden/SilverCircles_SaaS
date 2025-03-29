@@ -69,12 +69,12 @@ export function Header() {
             {/* User is not logged in */}
             {!user && (
               <div className="flex space-x-3">
-                <Link href="/auth">
-                  <Button variant="outline" className="w-full">Log In</Button>
-                </Link>
-                <Link href="/auth?signup=true">
-                  <Button className="w-full">Sign Up</Button>
-                </Link>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/auth">Log In</Link>
+                </Button>
+                <Button className="w-full" asChild>
+                  <Link href="/auth?signup=true">Sign Up</Link>
+                </Button>
               </div>
             )}
 
@@ -94,29 +94,29 @@ export function Header() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <Link href="/dashboard" className="w-full">
-                    <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/dashboard" className="w-full">
                       Dashboard
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/profile" className="w-full">
-                    <DropdownMenuItem className="cursor-pointer">
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/profile" className="w-full">
                       Profile
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/settings" className="w-full">
-                    <DropdownMenuItem className="cursor-pointer">
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link href="/settings" className="w-full">
                       Settings
-                    </DropdownMenuItem>
-                  </Link>
+                    </Link>
+                  </DropdownMenuItem>
                   {user.isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <Link href="/admin" className="w-full">
-                        <DropdownMenuItem className="cursor-pointer">
+                      <DropdownMenuItem className="cursor-pointer" asChild>
+                        <Link href="/admin" className="w-full">
                           Admin Panel
-                        </DropdownMenuItem>
-                      </Link>
+                        </Link>
+                      </DropdownMenuItem>
                     </>
                   )}
                   <DropdownMenuSeparator />
@@ -199,16 +199,16 @@ export function Header() {
                 </>
               ) : (
                 <div className="flex flex-col space-y-3">
-                  <Link href="/auth">
-                    <Button className="w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full" asChild>
+                    <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
                       Log In
-                    </Button>
-                  </Link>
-                  <Link href="/auth?signup=true">
-                    <Button className="w-full" variant="secondary" onClick={() => setMobileMenuOpen(false)}>
+                    </Link>
+                  </Button>
+                  <Button className="w-full" variant="secondary" asChild>
+                    <Link href="/auth?signup=true" onClick={() => setMobileMenuOpen(false)}>
                       Sign Up
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               )}
             </nav>
