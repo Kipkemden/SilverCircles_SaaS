@@ -52,21 +52,27 @@ export function Header() {
                 Forums
               </a>
             </Link>
-            <Link href="/groups">
-              <a className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                Groups
-              </a>
-            </Link>
-            <Link href="/zoom-calls">
-              <a className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                Events
-              </a>
-            </Link>
-            <Link href="/about">
-              <a className={`${isActivePath("/about") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                About
-              </a>
-            </Link>
+            
+            {/* Only show these links if user is logged in */}
+            {user && (
+              <>
+                <Link href="/groups">
+                  <a className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                    Groups
+                  </a>
+                </Link>
+                <Link href="/zoom-calls">
+                  <a className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                    Events
+                  </a>
+                </Link>
+                <Link href="/dashboard">
+                  <a className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                    Dashboard
+                  </a>
+                </Link>
+              </>
+            )}
 
             {/* User is not logged in */}
             {!user && (
@@ -86,7 +92,9 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center space-x-2 text-neutral-800 hover:text-primary">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.profileImage} alt={user.fullName || user.username} />
+                      {user.profileImage && 
+                        <AvatarImage src={user.profileImage} alt={user.fullName || user.username} />
+                      }
                       <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{user.fullName || user.username}</span>
@@ -125,32 +133,36 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-2">
             <nav className="flex flex-col space-y-3">
+              {/* Forums link visible to all */}
               <Link href="/forums">
                 <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/forums") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
                   Forums
                 </a>
               </Link>
-              <Link href="/groups">
-                <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                  Groups
-                </a>
-              </Link>
-              <Link href="/zoom-calls">
-                <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                  Events
-                </a>
-              </Link>
-              <Link href="/about">
-                <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/about") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
-                  About
-                </a>
-              </Link>
+              
+              {/* Links visible only to logged in users */}
+              {user && (
+                <>
+                  <Link href="/dashboard">
+                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/dashboard") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                      Dashboard
+                    </a>
+                  </Link>
+                  <Link href="/groups">
+                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/groups") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                      Groups
+                    </a>
+                  </Link>
+                  <Link href="/zoom-calls">
+                    <a onClick={() => setMobileMenuOpen(false)} className={`${isActivePath("/zoom-calls") ? "text-primary" : "text-neutral-800"} hover:text-primary font-medium`}>
+                      Events
+                    </a>
+                  </Link>
+                </>
+              )}
               
               {user ? (
                 <>
-                  <Link href="/dashboard">
-                    <a onClick={() => setMobileMenuOpen(false)} className="text-neutral-800 hover:text-primary font-medium">Dashboard</a>
-                  </Link>
                   <Link href="/profile">
                     <a onClick={() => setMobileMenuOpen(false)} className="text-neutral-800 hover:text-primary font-medium">Profile</a>
                   </Link>

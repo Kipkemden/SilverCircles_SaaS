@@ -23,14 +23,14 @@ import { ProtectedRoute } from "@/lib/protected-route";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/about" component={AboutPage} />
+      <Route path="/" component={AboutPage} />
+      <Route path="/home" component={HomePage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/forums" component={ForumsPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <ProtectedRoute path="/dashboard" component={DashboardPage} />
-      <ProtectedRoute path="/forums" component={ForumsPage} />
       <ProtectedRoute path="/forums/:id" component={ForumDetailPage} />
       <ProtectedRoute path="/groups" component={GroupsPage} />
       <ProtectedRoute path="/groups/:id" component={GroupDetailPage} />
