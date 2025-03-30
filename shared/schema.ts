@@ -1,58 +1,58 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, boolean, timestamp, timestamptz } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  fullName: varchar("full_name", { length: 100 }).notNull(),
   isPremium: boolean("is_premium").default(false).notNull(),
-  premiumUntil: timestamp("premium_until"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
+  premiumUntil: timestamptz("premium_until"),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   aboutMe: text("about_me"),
-  profileImage: text("profile_image"),
+  profileImage: varchar("profile_image", { length: 255 }),
   isAdmin: boolean("is_admin").default(false).notNull(),
   isVerified: boolean("is_verified").default(false).notNull(),
-  verificationToken: text("verification_token"),
-  verificationTokenExpiry: timestamp("verification_token_expiry"),
-  passwordResetToken: text("password_reset_token"),
-  passwordResetExpiry: timestamp("password_reset_expiry"),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  verificationToken: varchar("verification_token", { length: 255 }),
+  verificationTokenExpiry: timestamptz("verification_token_expiry"),
+  passwordResetToken: varchar("password_reset_token", { length: 255 }),
+  passwordResetExpiry: timestamptz("password_reset_expiry"),
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
   description: text("description").notNull(),
   isPremium: boolean("is_premium").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const groupMembers = pgTable("group_members", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   groupId: integer("group_id").notNull(),
-  joinedAt: timestamp("joined_at").defaultNow().notNull()
+  joinedAt: timestamptz("joined_at").defaultNow().notNull()
 });
 
 export const forums = pgTable("forums", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
   description: text("description").notNull(),
   isPremium: boolean("is_premium").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const forumPosts = pgTable("forum_posts", {
   id: serial("id").primaryKey(),
   forumId: integer("forum_id").notNull(),
   userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
   content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const forumReplies = pgTable("forum_replies", {
@@ -60,28 +60,28 @@ export const forumReplies = pgTable("forum_replies", {
   postId: integer("post_id").notNull(),
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const zoomCalls = pgTable("zoom_calls", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
   description: text("description"),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time").notNull(),
-  zoomLink: text("zoom_link").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  startTime: timestamptz("start_time").notNull(),
+  endTime: timestamptz("end_time").notNull(),
+  zoomLink: varchar("zoom_link", { length: 255 }).notNull(),
+  createdAt: timestamptz("created_at").defaultNow().notNull()
 });
 
 export const zoomCallParticipants = pgTable("zoom_call_participants", {
   id: serial("id").primaryKey(),
   callId: integer("call_id").notNull(),
   userId: integer("user_id").notNull(),
-  joinedAt: timestamp("joined_at").defaultNow().notNull()
+  joinedAt: timestamptz("joined_at").defaultNow().notNull()
 });
 
-// Insert schemas for validation
+// The rest of your schema file (types and validation schemas) remains the same
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
