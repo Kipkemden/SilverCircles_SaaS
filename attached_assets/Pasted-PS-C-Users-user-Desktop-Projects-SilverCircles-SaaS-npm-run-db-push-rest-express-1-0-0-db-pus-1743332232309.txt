@@ -1,0 +1,47 @@
+PS C:\Users\user\Desktop\Projects\SilverCircles_SaaS> npm run db:push
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file 'C:\Users\user\Desktop\Projects\SilverCircles_SaaS\drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+· You're about to add users_username_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate users table?
+
+· You're about to add users_email_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate users table?
+
+ Warning  Found data-loss statements:
+· You're about to delete session table with 3 items
+· You're about to change joined_at column type from timestamp with time zone to timestamp with 4 items
+· You're about to change name column type from varchar(100) to text with 2 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 2 items
+· You're about to change title column type from varchar(100) to text with 7 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 7 items
+· You're about to change title column type from varchar(100) to text with 5 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 5 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 4 items
+· You're about to change title column type from varchar(100) to text with 4 items
+· You're about to change start_time column type from timestamp with time zone to timestamp with 4 items
+· You're about to change end_time column type from timestamp with time zone to timestamp with 4 items
+· You're about to change zoom_link column type from varchar(255) to text with 4 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 4 items
+· You're about to change joined_at column type from timestamp with time zone to timestamp with 4 items
+· You're about to change username column type from varchar(50) to text with 2 items
+· You're about to change password column type from varchar(255) to text with 2 items
+· You're about to change email column type from varchar(255) to text with 2 items
+· You're about to change full_name column type from varchar(100) to text with 2 items
+· You're about to change profile_image column type from varchar(255) to text with 2 items
+· You're about to change premium_until column type from timestamp with time zone to timestamp with 2 items
+· You're about to change stripe_customer_id column type from varchar(255) to text with 2 items
+· You're about to change stripe_subscription_id column type from varchar(255) to text with 2 items
+· You're about to change created_at column type from timestamp with time zone to timestamp with 2 items
+· You're about to delete reset_password_token column in users table with 2 items
+· You're about to delete reset_password_token_expiry column in users table with 2 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+[x] All changes were aborted
+PS C:\Users\user\Desktop\Projects\SilverCircles_SaaS>                 
+   
